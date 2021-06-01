@@ -1,0 +1,14 @@
+YaRB_interface  KEYWORD1
+YaRB	KEYWORD1
+
+put	KEYWORD2
+get	KEYWORD2
+peek	KEYWORD2
+discard	KEYWORD2
+size	KEYWORD2
+free	KEYWORD2
+capacity	KEYWORD2
+isFull	KEYWORD2
+isEmpty	KEYWORD2
+flush	KEYWORD2
+limit	KEYWORD2
