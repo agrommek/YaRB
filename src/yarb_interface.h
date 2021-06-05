@@ -218,6 +218,10 @@ class IYaRB {
         
         static  size_t limit(void);
         
+        // Virtual destructor to make sure, that derived objects are
+        // destroyed properly, even when called via pointer to base class.
+        virtual ~IYaRB() = default;
+        
         IYaRB& operator= (const IYaRB &yarb) = delete; ///< Do not allow implicit creation of assignment operator in derived classes.
 };
 
