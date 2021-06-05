@@ -65,29 +65,30 @@ class YaRB : public IYaRB {
         YaRB& operator= (const YaRB &rb) = delete;
 
         // put element(s) into ring buffer
-        bool   put(uint8_t new_element);
-        bool   put(const uint8_t *new_elements, size_t nbr_elements);
+        bool   put(uint8_t new_element) override;
+        bool   put(const uint8_t *new_elements, size_t nbr_elements) override;
 
         // get/remove element(s) from ring buffer
-        bool   get(uint8_t *returned_element);
-        bool   get(uint8_t *returned_elements, size_t nbr_elements);
+        bool   get(uint8_t *returned_element) override;
+        bool   get(uint8_t *returned_elements, size_t nbr_elements) override;
         
         // look at next element in ring buffer
         // note: there is no multi-byte-version!
-        bool   peek(uint8_t *peeked_element) const; 
+        bool   peek(uint8_t *peeked_element) const override; 
         
         // discard some elements from ring buffer, 
         // return number of discarded elements
-        size_t discard(size_t nbr_elements);
+        size_t discard(size_t nbr_elements) override;
 
-        size_t size(void) const;     // return number of slots in use
-        size_t free(void) const;     // return number of free slots
-        size_t capacity(void) const; // return total number of slots
+        size_t size(void) const override;     // return number of slots in use
+        size_t free(void) const override;     // return number of free slots
+        size_t capacity(void) const override; // return total number of slots
 
-        bool   isFull(void) const;   // return true when buffer is full
-        bool   isEmpty(void) const;  // return true when buffer is empty
-        void   flush(void);          // clear all elements from buffer
+        bool   isFull(void) const override;   // return true when buffer is full
+        bool   isEmpty(void) const override;  // return true when buffer is empty
+        void   flush(void) override;          // clear all elements from buffer
         
+        // no override for static functions...
         static size_t limit(void);   // return maximum possible number of elements on a given platform
 
     private:
