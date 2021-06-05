@@ -3,7 +3,7 @@
  * @brief   Header file for the YaRB ring buffer
  * @author  Andreas Grommek
  * @version 1.0.0
- * @date    2021-006-01
+ * @date    2021-06-01
  * 
  * @section license_yarb_h License
  * 
@@ -50,7 +50,7 @@
  *          This is due to the fact that the assignment operation for data
  *          type size_t is not atomic on some platforms.
  */
-class YaRB : public YaRB_interface {
+class YaRB : public IYaRB {
     public:
         // constructor
         YaRB(size_t capacity);

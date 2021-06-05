@@ -195,7 +195,7 @@
  *          for ring buffers. To be able to use these differing implementations
  *          interchangibly, a common interface is hereby defined.
  */
-class YaRB_interface {
+class IYaRB {
     public:
         virtual bool   put(uint8_t new_element) = 0;
         virtual bool   put(const uint8_t *new_elements, size_t nbr_elements) = 0;
@@ -218,12 +218,12 @@ class YaRB_interface {
         
         static  size_t limit(void);
         
-        YaRB_interface& operator= (const YaRB_interface &yarb) = delete; ///< Do not allow implicit creation of assignment operator in derived classes.
+        IYaRB& operator= (const IYaRB &yarb) = delete; ///< Do not allow implicit creation of assignment operator in derived classes.
 };
 
 // put() single
 /**
- * @fn         virutal bool YaRB_interface::put(uint8_t new_element)
+ * @fn         virutal bool IYaRB::put(uint8_t new_element)
  * @brief      Add a single element to ring buffer.
  * @param      new_element
  *             The new element to add to the ring buffer.
@@ -233,7 +233,7 @@ class YaRB_interface {
 
 // put() multiple
 /**
- * @fn         virtual bool YaRB_interface::put(const uint8_t *new_elements, size_t nbr_elements)
+ * @fn         virtual bool IYaRB::put(const uint8_t *new_elements, size_t nbr_elements)
  * @brief      Add several new elements to ring buffer.
  * @details    This functions adds several elements to the ring buffer in
  *             an "all or nothing" manner. If the ring buffer is big enough
@@ -254,7 +254,7 @@ class YaRB_interface {
 
 // get() single
 /**
- * @fn         virtual bool YaRB_interface::get(uint8_t *returned_element)
+ * @fn         virtual bool IYaRB::get(uint8_t *returned_element)
  * @brief      Get a single element from the ring buffer, thereby removing
  *             it from the buffer.
  * @details    If the ring buffer does not hold any elements (i.e. it is
@@ -271,7 +271,7 @@ class YaRB_interface {
 
 // get() multiple
 /**
- * @fn         virtual bool YaRB_interface::get(uint8_t *returned_elements, size_t nbr_elements)
+ * @fn         virtual bool IYaRB::get(uint8_t *returned_elements, size_t nbr_elements)
  * @brief      Get several elements from the ring buffer, thereby removing
  *             them from the buffer.
  * @details    This is an "all or nothing" operation. Either @b all 
@@ -295,7 +295,7 @@ class YaRB_interface {
 
 // peek()
 /**
- * @fn         virtual bool YaRB_interface::peek(uint8_t *peeked_element) const
+ * @fn         virtual bool IYaRB::peek(uint8_t *peeked_element) const
  * @brief      Return next element from the ring buffer while @b not removing it
  *             from the buffer.
  * @param[out] peeked_element
@@ -308,7 +308,7 @@ class YaRB_interface {
 
 // discard()
 /**
- * @fn         virtual size_t YaRB_interface::discard(size_t nbr_elements)
+ * @fn         virtual size_t IYaRB::discard(size_t nbr_elements)
  * @brief      Discard (i.e. remove) some elements from ring buffer without
  *             writing them to some output buffer.
  * @param      nbr_elements
@@ -319,7 +319,7 @@ class YaRB_interface {
  
 // size()
 /**
- * @fn         virtual bool YaRB_interface::size(void) const
+ * @fn         virtual bool IYaRB::size(void) const
  * @brief      Get number of currently used slots in ring buffer.
  * @return     Number of elements which can be gotten out of the to ring
  *             buffer (using get()) before it is empty.
@@ -327,7 +327,7 @@ class YaRB_interface {
 
 // free()
 /**
- * @fn         virtual bool YaRB_interface::free(void) const
+ * @fn         virtual bool IYaRB::free(void) const
  * @brief      Get number of currently free slots in ring buffer.
  * @return     Number of elements which can be added to ring buffer (using
  *             put()) before it is full.
@@ -335,7 +335,7 @@ class YaRB_interface {
 
 // capacity()
 /**
- * @fn         virtual bool YaRB_interface::capacity(void) const
+ * @fn         virtual bool IYaRB::capacity(void) const
  * @brief      Get the total size of this ring buffer instance, i.e. the
  *             maximum number of elements this instance can store.
  * @return     Number of elements which can be stored in this ring buffer
@@ -344,7 +344,7 @@ class YaRB_interface {
 
 // isFull()
 /**
- * @fn         virtual bool YaRB_interface::isFull(void) const
+ * @fn         virtual bool IYaRB::isFull(void) const
  * @brief      Determine if ring buffer is full.
  * @details    put() will return @em false if called on a full ring buffer.
  * @note       Calling isFull() is semantically identical to <em>size() ==
@@ -356,7 +356,7 @@ class YaRB_interface {
 
 // isEmpty()
 /**
- * @fn         virtual bool YaRB_interface::isEmpty(void) const
+ * @fn         virtual bool IYaRB::isEmpty(void) const
  * @brief      Determine if ring buffer is empty.
  * @details    get() will return @em false if called on an empty ring buffer.
  * @note       Calling isEmpty() is semantically identical to <em>size() ==
@@ -367,14 +367,14 @@ class YaRB_interface {
  */
 
 /**
- * @fn         virtual bool YaRB_interface::flush(void)
+ * @fn         virtual bool IYaRB::flush(void)
  * @brief      Clear out all elements stored in the ring buffer.
  * @details    After a call to flush(), isEmpty() will return @em true.
  */
 
 // limit()
 /**
- * @fn         static size_t YaRB_interface::limit(void)
+ * @fn         static size_t IYaRB::limit(void)
  * @brief      Show the (theoretical) limit of ring buffer size.
  * @details    The acutual maximum size will be most probably much lower
  *             than this.
