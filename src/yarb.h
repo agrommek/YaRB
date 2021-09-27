@@ -2,7 +2,7 @@
  * @file    yarb.h
  * @brief   Header file for the YaRB ring buffer
  * @author  Andreas Grommek
- * @version 1.0.1
+ * @version 1.1.0
  * @date    2021-09-27
  * 
  * @section license_yarb_h License
@@ -65,16 +65,16 @@ class YaRB : public IYaRB {
         YaRB& operator= (const YaRB &rb) = delete;
 
         // put element(s) into ring buffer
-        bool   put(uint8_t new_element) override;
-        bool   put(const uint8_t *new_elements, size_t nbr_elements) override;
+        size_t put(uint8_t new_element) override;
+        size_t put(const uint8_t *new_elements, size_t nbr_elements) override;
 
         // get/remove element(s) from ring buffer
-        bool   get(uint8_t *returned_element) override;
-        bool   get(uint8_t *returned_elements, size_t nbr_elements) override;
+        size_t get(uint8_t *returned_element) override;
+        size_t get(uint8_t *returned_elements, size_t nbr_elements) override;
         
         // look at next element in ring buffer
         // note: there is no multi-byte-version!
-        bool   peek(uint8_t *peeked_element) const override; 
+        size_t peek(uint8_t *peeked_element) const override; 
         
         // discard some elements from ring buffer, 
         // return number of discarded elements

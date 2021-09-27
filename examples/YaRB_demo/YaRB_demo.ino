@@ -100,27 +100,28 @@ void setup() {
     }
     size_t nbr = RB_CAPACITY / 3; 
     bool success = false;
+    size_t retval = 0;
     
     Serial.println(F("Add some elements to ringbuf in one go:"));
     // Note: a[] decays to a pointer here
-    success = ringbuf.put(a, nbr);
-    if (success) Serial.println(F("adding to ring buffer was successful"));
+    retval = ringbuf.put(a, nbr);
+    if (retval) Serial.println(F("adding to ring buffer was successful"));
     else         Serial.println(F("Could not add elements to ring buffer."));
     Serial.println(F("Status of ring buffer after adding some content from a[]:"));
     print_rb_properties(ringbuf);
 
     Serial.println(F("Add some more elements to ringbuf in one go:"));
     // Note: Start somewhere in the middle of the buffer, use "address-of" operator on array element
-    success = ringbuf.put(&a[nbr], nbr);
-    if (success) Serial.println(F("adding to ring buffer was successful"));
+    retval = ringbuf.put(&a[nbr], nbr);
+    if (retval) Serial.println(F("adding to ring buffer was successful"));
     else         Serial.println(F("Could not add elements to ring buffer."));
     Serial.println(F("Status of ring buffer after adding some content from a[]:"));
     print_rb_properties(ringbuf);
 
     Serial.println(F("Add some more elements to ringbuf in one go:"));
     // Note: Start somewhere in the middle of the buffer, using yet another notation (pointer arithmetic)
-    success = ringbuf.put(a+nbr, 2*nbr); // not enough room in ring buffer for another 2*nbr elements! returns false
-    if (success) Serial.println(F("adding to ring buffer was successful"));
+    retval = ringbuf.put(a+nbr, 2*nbr); // not enough room in ring buffer for another 2*nbr elements! returns false
+    if (retval) Serial.println(F("adding to ring buffer was successful"));
     else         Serial.println(F("Could not add elements to ring buffer."));
     Serial.println(F("Status of ring buffer after adding some content from a[] with return value of 'false' (--> unchanged!):"));
     print_rb_properties(ringbuf);
@@ -129,8 +130,8 @@ void setup() {
     // Now get some elements back from ring buffer and write them to an array
     uint8_t b[2*RB_CAPACITY];
     Serial.println(F("Get some elements back from ring buffer and write them to an array 'b[]'"));
-    success = ringbuf.get(b, 3*nbr/2);
-    if (success) {
+    retval = ringbuf.get(b, 3*nbr/2);
+    if (retval) {
         Serial.println(F("returning some elements from ring buffer was successful"));
         for (size_t i=0; i<(3*nbr/2); i++) {
             Serial.print(F("  b["));
@@ -146,10 +147,17 @@ void setup() {
     print_rb_properties(ringbuf);    
     
     // now try to remove more elements than are left in the ring buffer
-    success = ringbuf.get(b, nbr);
-    if (success) {
+    nbr = 20;
+    Serial.print(F("Trying to remove "));
+    Serial.print(nbr, DEC);
+    Serial.println(F(" more elements from ring buffer."));
+    retval = ringbuf.get(b, nbr);
+    Serial.print(F("received "));
+    Serial.print(retval, DEC);
+    Serial.println(F(" elements from ring buffer."));
+    if (retval) {
         Serial.println(F("returning some elements from ring buffer was successful"));
-        for (size_t i=0; i<(nbr); i++) {
+        for (size_t i=0; i<(retval); i++) {
             Serial.print(F("b["));
             Serial.print(i, DEC);
             Serial.print(F("]: "));

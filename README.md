@@ -31,10 +31,11 @@ The followng table summarized the usage of the YaRB class:
 
 |Method | Short description |
 | :---- | :---------------- |
-| `bool put(uint8_t new_element)` | Add a single byte to the Ring Buffer. |
-| `bool put(uint8_t * new_elements, size_t nbr_elements)` | All several bytes from an array to the Ring Buffer |
-| `bool get(uint_8 * returned_element)` | Get a single byte back out from the Ring Buffer |
-| `bool get(uint_8 * returned_elements, size_t nbr_elements)` | Get several bytes back out from the Ring Buffer and write them to an array. |
+| `size_t put(uint8_t new_element)` | Add a single byte to the Ring Buffer. |
+| `size_t put(uint8_t * new_elements, size_t nbr_elements)` | All several bytes from an array to the Ring Buffer |
+| `size_t get(uint_8 * returned_element)` | Get a single byte back out from the Ring Buffer |
+| `size_t get(uint_8 * returned_elements, size_t nbr_elements)` | Get several bytes back out from the Ring Buffer and write them to an array. |
+| `size_t peek(uint_8 * returned_element)` | Get next element from the ring buffer while *not* removing it from the buffer. |
 | `size_t discard(size_t nbr_elements)`| Discard one or more bytes from the Ring Buffer. |
 | `size_t size(void)` | Return the number of stored bytes. |
 | `size_t free(void)` | Return the nuber of free slots. |

@@ -2,8 +2,8 @@
  * @file    yarb_interface.h
  * @brief   Header file for the YaRB interface
  * @author  Andreas Grommek
- * @version 1.0.0
- * @date    2021-06-01
+ * @version 1.1.0
+ * @date    2021-09-27
  * 
  * @section license_yarb_interface_h License
  * 
@@ -84,10 +84,11 @@
  * 
  * |Method | Short description |
  * | :---- | :---------------- |
- * | `bool put(uint8_t new_element)` | Add a single byte to the Ring Buffer. |
- * | `bool put(uint8_t * new_elements, size_t nbr_elements)` | All several bytes from an array to the Ring Buffer |
- * | `bool get(uint_8 * returned_element)` | Get a single byte back out from the Ring Buffer |
- * | `bool get(uint_8 * returned_elements, size_t nbr_elements)` | Get several bytes back out from the Ring Buffer and write them to an array. |
+ * | `size_t put(uint8_t new_element)` | Add a single byte to the Ring Buffer. |
+ * | `size_t put(uint8_t * new_elements, size_t nbr_elements)` | All several bytes from an array to the Ring Buffer |
+ * | `size_t get(uint_8 * returned_element)` | Get a single byte back out from the Ring Buffer |
+ * | `size_t get(uint_8 * returned_elements, size_t nbr_elements)` | Get several bytes back out from the Ring Buffer and write them to an array. |
+ * | `size_t peek(uint_8 * returned_element)` | Get next element from the ring buffer while *not* removing it from the buffer. |
  * | `size_t discard(size_t nbr_elements)`| Discard one or more bytes from the Ring Buffer. |
  * | `size_t size(void)` | Return the number of stored bytes. |
  * | `size_t free(void)` | Return the nuber of free slots. |
@@ -197,13 +198,13 @@
  */
 class IYaRB {
     public:
-        virtual bool   put(uint8_t new_element) = 0;
-        virtual bool   put(const uint8_t *new_elements, size_t nbr_elements) = 0;
+        virtual size_t put(uint8_t new_element) = 0;
+        virtual size_t put(const uint8_t *new_elements, size_t nbr_elements) = 0;
 
-        virtual bool   get(uint8_t *returned_element) = 0;
-        virtual bool   get(uint8_t *returned_elements, size_t nbr_elements) = 0;
+        virtual size_t get(uint8_t *returned_element) = 0;
+        virtual size_t get(uint8_t *returned_elements, size_t nbr_elements) = 0;
         
-        virtual bool   peek(uint8_t *peeked_element) const = 0;
+        virtual size_t peek(uint8_t *peeked_element) const = 0;
 
         virtual size_t discard(size_t nbr_elements) = 0;
 
@@ -231,8 +232,7 @@ class IYaRB {
  * @brief      Add a single element to ring buffer.
  * @param      new_element
  *             The new element to add to the ring buffer.
- * @return     @em true if element was sucessfully added, @em false otherwise.
- *             If @em false is returned, the ring buffer was not modified.
+ * @return     number of elements added to ring buffer (either 0 or 1)
  */
 
 // put() multiple
@@ -251,9 +251,7 @@ class IYaRB {
  *             Number of elements to add from array new_elements to ring buffer.
  *             If the ring buffer is not big enough to hold all additional new
  *             elements @b no element is added at all.
- * @return     @em true if and only if @b all nbr_elements elements could be 
- *             sucessfully added to the ring buffer, @em false otherwise.
- *             If @em false is returned, the ring buffer was not modified.
+ * @return     number of elements added to ring buffer
  */
 
 // get() single
@@ -267,10 +265,8 @@ class IYaRB {
  * @param[out] returned_element
  *             Pointer to a uint8_t. The returned element is stored in the
  *             memory address this pointer points to.
- * @return     @em true if an element could be removed from the ring buffer
- *             and written to the memory address given by returned_element,
- *             @em false otherwise. 
- *             If @em false is returned, the ring buffer was not modified.
+ * @return     number of elements removed from ring buffer and copied to
+ *             returned_elements (either 0 or 1)
  */
 
 // get() multiple
@@ -291,10 +287,8 @@ class IYaRB {
  *             to returned_elements. 
  *             If the ring buffer does not have enough elements stored,
  *             @b no elements are returned at all.
- * @return     @em true if all requested nbr_elements elements could be 
- *             removed from the ring buffer and written to the memory 
- *             address given by returned_elements, @em false otherwise. 
- *             If @em false is returned, the ring buffer was not modified.
+ * @return     number of elements removed from ring buffer and copied to
+ *             returned_elements
  */
 
 // peek()
@@ -305,9 +299,8 @@ class IYaRB {
  * @param[out] peeked_element
  *             Pointer to a uint8_t. The peeked element is stored 
  *             at the memory address this pointer points to.
- * @return     @em true if the next element from the ring buffer could be
- *             written to peeked_element, @em false otherwise. 
- *             This function does never modify the ring buffer.
+ * @return     number of elements peeked, i.e. copied to peeked_element
+ *             (either 0 or 1)
  */
 
 // discard()

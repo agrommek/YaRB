@@ -2,7 +2,7 @@
  * @file    yarb.cpp
  * @brief   Implementation file for the YaRB ring buffer
  * @author  Andreas Grommek
- * @version 1.0.1
+ * @version 1.1.0
  * @date    2021-09-27
  * 
  * @section license_yarb_cpp License
@@ -65,23 +65,27 @@ YaRB::~YaRB() {
     delete[] arraypointer;
 }
 
-bool YaRB::put(uint8_t new_element) {
+size_t YaRB::put(uint8_t new_element) {
     if (this->isFull()) {
-        return false;
+        return 0;
     }
     else {
         arraypointer[modcap(writeindex)] = new_element;
         writeindex = modcap2(writeindex+1);
-        return true;
+        return 1;
     }
 }
 
-bool YaRB::put(const uint8_t *new_elements, size_t nbr_elements) {
-    // check for space in buffer and validity of input pointer (may be nullptr)
-    if (this->free() < nbr_elements || !new_elements ) {
-        return false;
+size_t YaRB::put(const uint8_t *new_elements, size_t nbr_elements) {
+    // check validity of input pointer (may be nullptr)
+    if (!new_elements ) {
+        return 0;
     }
     else {
+        // only add at most free() elements to ring buffer
+        if (nbr_elements > this->free()) {
+            nbr_elements = this->free();
+        }
         for (size_t i=0; i<nbr_elements; i++) {
               // re-implementation is about 3-4 times faster than calling
               // single-element put()
@@ -89,18 +93,18 @@ bool YaRB::put(const uint8_t *new_elements, size_t nbr_elements) {
               writeindex = modcap2(writeindex+1);
               new_elements++;
         }
-        return true;
+        return nbr_elements;
     }
 }
 
-bool YaRB::peek(uint8_t *peeked_element) const {
+size_t YaRB::peek(uint8_t *peeked_element) const {
     // check for emptyness and validity of output pointer (may be nullptr)
     if (this->isEmpty() || !peeked_element) {
-        return false;
+        return 0;
     }
     else {
         *peeked_element = arraypointer[modcap(readindex)];
-        return true;
+        return 1;
     }
 }
 
@@ -134,24 +138,28 @@ size_t YaRB::discard(size_t nbr_elements) {
     }
 }
 
-bool YaRB::get(uint8_t *returned_element) {
+size_t YaRB::get(uint8_t *returned_element) {
     // check for emptyness and validity of output pointer (may  be nullptr)
     if (this->isEmpty() || !returned_element) {
-        return false;
+        return 0;
     }
     else {
         *returned_element = arraypointer[modcap(readindex)];
         readindex = modcap2(readindex+1);
-        return true;
+        return 1;
     }
 }
 
-bool YaRB::get(uint8_t *returned_elements, size_t nbr_elements) {
-    // check for size and nullptr
-    if (nbr_elements > this->size() || !returned_elements) {
-        return false;
+size_t YaRB::get(uint8_t *returned_elements, size_t nbr_elements) {
+    // check nullptr
+    if (!returned_elements) {
+        return 0;
     }
     else {
+        // only get at most size() elements from buffer
+        if (nbr_elements > this->size()) {
+            nbr_elements = this->size();
+        }
         for (size_t i=0; i<nbr_elements; i++) {
             // re-implementation is about 2 times faster than calling
             // single-element get()        
@@ -159,7 +167,7 @@ bool YaRB::get(uint8_t *returned_elements, size_t nbr_elements) {
             readindex = modcap2(readindex+1);
             returned_elements++;
         }
-        return true;
+        return nbr_elements;
     }
 }
         
