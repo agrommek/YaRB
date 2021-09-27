@@ -2,8 +2,8 @@
  * @file    yarb.cpp
  * @brief   Implementation file for the YaRB ring buffer
  * @author  Andreas Grommek
- * @version 1.0.0
- * @date    2021-06-01
+ * @version 1.0.1
+ * @date    2021-09-27
  * 
  * @section license_yarb_cpp License
  * 
@@ -55,7 +55,7 @@ YaRB::YaRB(size_t capacity)
 YaRB::YaRB(const YaRB &rb)
     : cap{rb.cap}, readindex{rb.readindex}, writeindex{rb.writeindex}, arraypointer{nullptr} {
     arraypointer = new uint8_t[cap];
-    memcpy(arraypointer, &rb, (cap * sizeof(uint8_t)) );        
+    memcpy(arraypointer, &(rb.arraypointer), (cap * sizeof(uint8_t)) );        
 }
 
 /**
@@ -112,7 +112,7 @@ size_t YaRB::discard(size_t nbr_elements) {
         // would then overflow, giving wrong results after modcap2.
         // --> Do modulus calculation "manually".
         //
-        // The difference  between current readinday is always > 0 (i.e. at least 1)
+        // The difference between current readindex is always > 0 (i.e. at least 1)
         size_t diff_to_max = 2*cap - readindex;
         if (diff_to_max <= nbr_elements) { // readindex+nbr_elements > 2*cap --> danger of overflow
             readindex = nbr_elements - diff_to_max;

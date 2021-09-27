@@ -2,8 +2,8 @@
  * @file    yarb.h
  * @brief   Header file for the YaRB ring buffer
  * @author  Andreas Grommek
- * @version 1.0.0
- * @date    2021-06-01
+ * @version 1.0.1
+ * @date    2021-09-27
  * 
  * @section license_yarb_h License
  * 
