@@ -2,8 +2,8 @@
  * @file    yarb_interface.h
  * @brief   Header file for the YaRB interface
  * @author  Andreas Grommek
- * @version 1.2.0
- * @date    2021-09-28
+ * @version 1.3.0
+ * @date    2021-09-29
  * 
  * @section license_yarb_interface_h License
  * 
@@ -147,10 +147,6 @@
  * Maybe I will try to implement an interrupt-safe version later. The
  * abstact base class is now there, after all. ;-)
  * 
- * @subsection thanks Thanks and Credits
- * 
- * The implementation is not quite textbook-like. With most implementations, an array of N bytes is allocated, but only N-1 bytes can be used. This implementation can use the whole range of allocated space for only very slight additional runtime overhead. The idea was inspired by [this article](https://www.snellman.net/blog/archive/2016-12-13-ring-buffers/) and the discussion in the comments section underneath it.
- * 
  * @section author Author
  *
  * Andreas Grommek
@@ -179,8 +175,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  *
- * @version  1.0.0
- * @date     2021-06-01
+ * @version  1.3.0
+ * @date     2021-09-29
  */
  
 #ifndef yarb_interface_h
@@ -199,7 +195,7 @@
 class IYaRB {
     public:
         virtual size_t put(uint8_t new_element) = 0;
-        virtual size_t put(const uint8_t *new_elements, size_t nbr_elements) = 0;
+        virtual size_t put(const uint8_t *new_elements, size_t nbr_elements, bool only_complete) = 0;
 
         virtual size_t get(uint8_t *returned_element) = 0;
         virtual size_t get(uint8_t *returned_elements, size_t nbr_elements) = 0;
@@ -251,6 +247,12 @@ class IYaRB {
  *             Number of elements to add from array new_elements to ring buffer.
  *             If the ring buffer is not big enough to hold all additional new
  *             elements @b no element is added at all.
+ * @param      only_complete
+ *             If set to true only complete writes are allowed. If there
+ *             is not enough space left in the ring buffer, @b no bytes
+ *             are written and 0 is returned.
+ *             If set to false and there is not enough space, fill the 
+ *             ring buffer and ignore the surplus bytes.
  * @return     number of elements added to ring buffer
  */
 

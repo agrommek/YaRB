@@ -1,9 +1,9 @@
 /**
  * @file    yarb.h
- * @brief   Header file for the YaRB ring buffer
+ * @brief   Header file for a ring buffer implementations
  * @author  Andreas Grommek
- * @version 1.2.0
- * @date    2021-09-28
+ * @version 1.3.0
+ * @date    2021-09-29
  * 
  * @section license_yarb_h License
  * 
@@ -39,11 +39,6 @@
  * @class   YaRB
  * @brief   Ring buffer implementation using dynamic allocated array and
  *          two indices.
- * @details Unlike most implementations, it is possible to use the full
- *          number of elements allocated. This is made possible by calculating
- *          the indices <em> mod(2*capacity)</em>. The implementation was 
- *          inspired by this article and the discussion in the comments:
- *          https://www.snellman.net/blog/archive/2016-12-13-ring-buffers/
  * @warning This class is @b not interrupt-safe, even with only a single
  *          interrupt priority (as on AVR Arduinos) and when only adding 
  *          to it in an ISR and removing from it in loop() (or vice versa).
@@ -53,7 +48,7 @@
 class YaRB : public IYaRB {
     public:
         // constructor
-        YaRB(size_t capacity=64);
+        YaRB(size_t capacity=63);
         
         // copy constructor
         YaRB(const YaRB &rb);
@@ -66,7 +61,71 @@ class YaRB : public IYaRB {
 
         // put element(s) into ring buffer
         size_t put(uint8_t new_element) override;
-        size_t put(const uint8_t *new_elements, size_t nbr_elements) override;
+        size_t put(const uint8_t *new_elements, size_t nbr_elements, bool only_complete=true) override;
+
+        // get/remove element(s) from ring buffer
+        size_t get(uint8_t *returned_element) override;
+        size_t get(uint8_t *returned_elements, size_t nbr_elements) override;
+        
+        // look at next element in ring buffer
+        // note: there is no multi-byte-version!
+        size_t peek(uint8_t *peeked_element) const override; 
+        
+        // discard some elements from ring buffer, 
+        // return number of discarded elements
+        size_t discard(size_t nbr_elements) override;
+
+        size_t size(void) const override;     // return number of slots in use
+        size_t free(void) const override;     // return number of free slots
+        size_t capacity(void) const override; // return total number of slots
+
+        bool   isFull(void) const override;   // return true when buffer is full
+        bool   isEmpty(void) const override;  // return true when buffer is empty
+        void   flush(void) override;          // clear all elements from buffer
+        
+        // no override for static functions...
+        static size_t limit(void);   // return maximum possible number of elements on a given platform
+
+    private:
+        const size_t  cap;     ///< store capacity of ring buffer
+        size_t  readindex;     ///< index for get()
+        size_t  writeindex;    ///< index for put()
+        uint8_t *arraypointer; ///< pointer to array which holds the elements
+};
+
+
+/**
+ * @class   YaRB2
+ * @brief   Ring buffer implementation using dynamic allocated array and
+ *          two indices.
+ * @details Unlike most implementations, it is possible to use the full
+ *          number of elements allocated. This is made possible by calculating
+ *          the indices <em> mod(2*capacity)</em>. The implementation was 
+ *          inspired by this article and the discussion in the comments:
+ *          https://www.snellman.net/blog/archive/2016-12-13-ring-buffers/
+ * @warning This class is @b not interrupt-safe, even with only a single
+ *          interrupt priority (as on AVR Arduinos) and when only adding 
+ *          to it in an ISR and removing from it in loop() (or vice versa).
+ *          This is due to the fact that the assignment operation for data
+ *          type size_t is not atomic on some platforms.
+ */
+class YaRB2 : public IYaRB {
+    public:
+        // constructor
+        YaRB2(size_t capacity=64);
+        
+        // copy constructor
+        YaRB2(const YaRB2 &rb);
+        
+        // destructor
+        ~YaRB2(void);
+        
+        // do not allow assignments
+        YaRB2& operator= (const YaRB2 &rb) = delete;
+
+        // put element(s) into ring buffer
+        size_t put(uint8_t new_element) override;
+        size_t put(const uint8_t *new_elements, size_t nbr_elements, bool only_complete=true) override;
 
         // get/remove element(s) from ring buffer
         size_t get(uint8_t *returned_element) override;
@@ -101,6 +160,77 @@ class YaRB : public IYaRB {
         size_t  modcap2(size_t val) const;
 };
 
-#endif // yarb_h
+/**
+ * @class   YaRB2t
+ * @brief   Ring buffer implementation using a template and two indices.
+ * @details Unlike most implementations, it is possible to use the full
+ *          number of elements allocated. This is made possible by calculating
+ *          the indices <em> mod(2*capacity)</em>. The implementation was 
+ *          inspired by this article and the discussion in the comments:
+ *          https://www.snellman.net/blog/archive/2016-12-13-ring-buffers/
+ * @warning This class is @b not interrupt-safe, even with only a single
+ *          interrupt priority (as on AVR Arduinos) and when only adding 
+ *          to it in an ISR and removing from it in loop() (or vice versa).
+ *          This is due to the fact that the assignment operation for data
+ *          type size_t is not atomic on some platforms.
+ */
+template <size_t CAPACITY = 64>
+class YaRB2t : public IYaRB {
+    public:
+        // sanity checking
+        static_assert(CAPACITY > 0, "not allowed to instantiate template with CAPACITY=0");
+        
+        // constructor
+        YaRB2t(void);
+        
+        // copy constructor
+        YaRB2t(const YaRB2t &rb);
+        
+        // destructor
+        virtual ~YaRB2t(void) = default;
+        
+        // do not allow assignments
+        YaRB2t& operator= (const YaRB2t &rb) = delete;
+
+        // put element(s) into ring buffer
+        size_t put(uint8_t new_element) override;
+        size_t put(const uint8_t *new_elements, size_t nbr_elements, bool only_complete=true) override;
+
+        // get/remove element(s) from ring buffer
+        size_t get(uint8_t *returned_element) override;
+        size_t get(uint8_t *returned_elements, size_t nbr_elements) override;
+        
+        // look at next element in ring buffer
+        // note: there is no multi-byte-version!
+        size_t peek(uint8_t *peeked_element) const override; 
+        
+        // discard some elements from ring buffer, 
+        // return number of discarded elements
+        size_t discard(size_t nbr_elements) override;
+
+        size_t size(void) const override;     // return number of slots in use
+        size_t free(void) const override;     // return number of free slots
+        size_t capacity(void) const override; // return total number of slots
+
+        bool   isFull(void) const override;   // return true when buffer is full
+        bool   isEmpty(void) const override;  // return true when buffer is empty
+        void   flush(void) override;          // clear all elements from buffer
+        
+        // no override for static functions...
+        static size_t limit(void);   // return maximum possible number of elements on a given platform
+
+    private:
+        size_t  readindex;           ///< index for get()
+        size_t  writeindex;          ///< index for put()
+        uint8_t arr[CAPACITY];       ///< array which holds the elements
+        
+        size_t  modcap(size_t val) const;
+        size_t  modcap2(size_t val) const;
+};
+
+// include imlementation file for template here
+#include "yarb2t.hpp"
+
+#endif // end of yarb_h
 
 

@@ -9,7 +9,6 @@
 
 // include the library
 #include <yarb.h>
-#include <yarb_template.h>
 
 // select capacity of ring buffer
 const size_t RB_CAPACITY = 20;
@@ -18,12 +17,13 @@ const size_t RB_CAPACITY = 20;
 
 // Select here if you want to use the version with dynamically allocated memory or the templated version.
 
-//YaRB ringbuf(RB_CAPACITY);            // dynamically allocated storage
-YaRB_template<RB_CAPACITY> ringbuf;   // statically allocated storage, template version
+YaRB ringbuf(RB_CAPACITY);     // dynamically allocated storage
+//YaRB2 ringbuf(RB_CAPACITY);    // dynamically allocated storage, classic implementation
+//YaRB2t<RB_CAPACITY> ringbuf;   // statically allocated storage, template version
 
 // Note: If you want to use the default size of 64, use something like this:
-//    YaRB_template<> ringbuf     <-- for C++11 (Arduino & Co)
-//    YaRB_remplate   ringbuf     <-- for C++14 an newer
+//    YaRB2t<> ringbuf     <-- for C++11 (Arduino & Co)
+//    YaRB2t   ringbuf     <-- for C++14 and newer
 
 // declare some variable to use for this test
 uint8_t x;
@@ -152,7 +152,6 @@ void setup() {
     print_rb_properties(ringbuf);    
     
     // now try to remove more elements than are left in the ring buffer
-    nbr = 20;
     Serial.print(F("Trying to remove "));
     Serial.print(nbr, DEC);
     Serial.println(F(" more elements from ring buffer."));

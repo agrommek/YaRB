@@ -42,7 +42,7 @@
  *          and cannot be changed afterwards.
  */
 template <size_t CAPACITY>
-YaRB_template<CAPACITY>::YaRB_template(void) 
+YaRB2t<CAPACITY>::YaRB2t(void) 
     : readindex{0}, writeindex{0}, arr{0} {}
 
 /**
@@ -51,13 +51,13 @@ YaRB_template<CAPACITY>::YaRB_template(void)
  *          Reference to class instance to copy.
  */
 template <size_t CAPACITY>
-YaRB_template<CAPACITY>::YaRB_template(const YaRB_template &rb)
+YaRB2t<CAPACITY>::YaRB2t(const YaRB2t &rb)
     : readindex{rb.readindex}, writeindex{rb.writeindex}, arr{0} {
     memcpy(arr, &(rb.arr), (CAPACITY * sizeof(uint8_t)) );        
 }
 
 template <size_t CAPACITY>
-size_t YaRB_template<CAPACITY>::put(uint8_t new_element) {
+size_t YaRB2t<CAPACITY>::put(uint8_t new_element) {
     if (this->isFull()) {
         return 0;
     }
@@ -69,29 +69,29 @@ size_t YaRB_template<CAPACITY>::put(uint8_t new_element) {
 }
 
 template <size_t CAPACITY>
-size_t YaRB_template<CAPACITY>::put(const uint8_t *new_elements, size_t nbr_elements) {
+size_t YaRB2t<CAPACITY>::put(const uint8_t *new_elements, size_t nbr_elements, bool only_complete) {
     // check validity of input pointer (may be nullptr)
     if (!new_elements ) {
         return 0;
     }
-    else {
-        // only add at most free() elements to ring buffer
-        if (nbr_elements > this->free()) {
-            nbr_elements = this->free();
-        }
-        for (size_t i=0; i<nbr_elements; i++) {
-              // re-implementation is about 3-4 times faster than calling
-              // single-element put()
-              arr[modcap(writeindex)] = *new_elements;
-              writeindex = modcap2(writeindex+1);
-              new_elements++;
-        }
-        return nbr_elements;
+    // only add at most free() elements to ring buffer
+    if (nbr_elements > this->free()) {
+        if (only_complete) return 0;
+        nbr_elements = this->free();
     }
+    for (size_t i=0; i<nbr_elements; i++) {
+          // re-implementation is about 3-4 times faster than calling
+          // single-element put()
+          arr[modcap(writeindex)] = *new_elements;
+          writeindex = modcap2(writeindex+1);
+          new_elements++;
+    }
+    return nbr_elements;
+
 }
 
 template <size_t CAPACITY>
-size_t YaRB_template<CAPACITY>::peek(uint8_t *peeked_element) const {
+size_t YaRB2t<CAPACITY>::peek(uint8_t *peeked_element) const {
     // check for emptyness and validity of output pointer (may be nullptr)
     if (this->isEmpty() || !peeked_element) {
         return 0;
@@ -103,7 +103,7 @@ size_t YaRB_template<CAPACITY>::peek(uint8_t *peeked_element) const {
 }
 
 template <size_t CAPACITY>
-size_t YaRB_template<CAPACITY>::discard(size_t nbr_elements) {
+size_t YaRB2t<CAPACITY>::discard(size_t nbr_elements) {
     if (this->size() > nbr_elements) { // there will be remaining elements in buffer
         // Due to danger of integer overflow, we cannot just do
         // readindex = modcap2(readindex + nbr_elements):
@@ -134,7 +134,7 @@ size_t YaRB_template<CAPACITY>::discard(size_t nbr_elements) {
 }
 
 template <size_t CAPACITY>
-size_t YaRB_template<CAPACITY>::get(uint8_t *returned_element) {
+size_t YaRB2t<CAPACITY>::get(uint8_t *returned_element) {
     // check for emptyness and validity of output pointer (may  be nullptr)
     if (this->isEmpty() || !returned_element) {
         return 0;
@@ -147,7 +147,7 @@ size_t YaRB_template<CAPACITY>::get(uint8_t *returned_element) {
 }
 
 template <size_t CAPACITY>
-size_t YaRB_template<CAPACITY>::get(uint8_t *returned_elements, size_t nbr_elements) {
+size_t YaRB2t<CAPACITY>::get(uint8_t *returned_elements, size_t nbr_elements) {
     // check nullptr
     if (!returned_elements) {
         return 0;
@@ -169,47 +169,47 @@ size_t YaRB_template<CAPACITY>::get(uint8_t *returned_elements, size_t nbr_eleme
 }
 
 template <size_t CAPACITY>
-size_t YaRB_template<CAPACITY>::size(void) const {
+size_t YaRB2t<CAPACITY>::size(void) const {
     return modcap2(writeindex-readindex);
 }
 
 template <size_t CAPACITY>
-size_t YaRB_template<CAPACITY>::free(void) const {
+size_t YaRB2t<CAPACITY>::free(void) const {
     return CAPACITY - this->size();
 }
 
 template <size_t CAPACITY>
-size_t YaRB_template<CAPACITY>::capacity(void) const {
+size_t YaRB2t<CAPACITY>::capacity(void) const {
     return CAPACITY;
 }
 
 template <size_t CAPACITY>
-bool YaRB_template<CAPACITY>::isFull(void) const {
+bool YaRB2t<CAPACITY>::isFull(void) const {
     return this->size() == CAPACITY;
 }
 
 template <size_t CAPACITY>
-bool YaRB_template<CAPACITY>::isEmpty(void) const {
+bool YaRB2t<CAPACITY>::isEmpty(void) const {
     return readindex == writeindex;
 }
 
 template <size_t CAPACITY>
-void YaRB_template<CAPACITY>::flush(void) {
+void YaRB2t<CAPACITY>::flush(void) {
     // fast-forward readindex to position of writeindex
     readindex = writeindex;
 }
 
 template <size_t CAPACITY>
-size_t YaRB_template<CAPACITY>::limit(void) {
+size_t YaRB2t<CAPACITY>::limit(void) {
     return SIZE_MAX / 2;
 }
 
 template <size_t CAPACITY>
-inline size_t YaRB_template<CAPACITY>::modcap(size_t val) const {
+inline size_t YaRB2t<CAPACITY>::modcap(size_t val) const {
     return (val % CAPACITY);
 }
 
 template <size_t CAPACITY>
-inline size_t YaRB_template<CAPACITY>::modcap2(size_t val) const {
+inline size_t YaRB2t<CAPACITY>::modcap2(size_t val) const {
     return (val % (2 * CAPACITY));
 }
