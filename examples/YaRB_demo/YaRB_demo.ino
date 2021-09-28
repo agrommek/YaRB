@@ -9,13 +9,21 @@
 
 // include the library
 #include <yarb.h>
+#include <yarb_template.h>
 
 // select capacity of ring buffer
 const size_t RB_CAPACITY = 20;
 
 // Create a ring buffer able to hold RB_CAPACITY bytes
-YaRB ringbuf(RB_CAPACITY);
 
+// Select here if you want to use the version with dynamically allocated memory or the templated version.
+
+//YaRB ringbuf(RB_CAPACITY);            // dynamically allocated storage
+YaRB_template<RB_CAPACITY> ringbuf;   // statically allocated storage, template version
+
+// Note: If you want to use the default size of 64, use something like this:
+//    YaRB_template<> ringbuf     <-- for C++11 (Arduino & Co)
+//    YaRB_remplate   ringbuf     <-- for C++14 an newer
 
 // declare some variable to use for this test
 uint8_t x;
@@ -27,8 +35,6 @@ void setup() {
     while (!Serial); // wait for serial connections
 
     Serial.println(F("\n\n === Starting YaRB demo === \n\n\n"));
-
-
     
     // Show the theoretical maximum ring buffer size for this platform
     // The practical limit is much smaller.
@@ -99,7 +105,6 @@ void setup() {
         a[i] = (uint8_t)(200 + i);
     }
     size_t nbr = RB_CAPACITY / 3; 
-    bool success = false;
     size_t retval = 0;
     
     Serial.println(F("Add some elements to ringbuf in one go:"));
@@ -213,7 +218,7 @@ void loop() {
 } // end of loop()
 
 // helper function to conveniently print the current properties of a ring buffer
-void print_rb_properties(const YaRB &rb) {
+void print_rb_properties(const IYaRB &rb) {
     Serial.print(F("  capacity(): ")); Serial.println( rb.capacity() );
     Serial.print(F("  size():     ")); Serial.println( rb.size() );
     Serial.print(F("  free():     ")); Serial.println( rb.free() );

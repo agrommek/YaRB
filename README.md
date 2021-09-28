@@ -26,7 +26,7 @@ Although written originally for the Arduino platform, there is nothing which pre
 
 Add the line `#include <yarb.h>` somwhere at the top of your Arduino sketch (or your .cpp file on other platforms).
 
-The followng table summarized the usage of the YaRB class:
+The following table summarized the usage of the YaRB interface:
 
 
 |Method | Short description |
@@ -66,6 +66,15 @@ Therefore, I say it right up front: **Do not use my Ring Buffer implementation w
 
 Maybe I will try to implement an interrupt-safe version later. The abstact base class is now there, after all. ;-)
 
-## Thanks and Credits
+## Implementations of the interface
 
-The implementation is not quite textbook-like. With most implementations, an array of N bytes is allocated, but only N-1 bytes can be used. This implementation can use the whole range of allocated space for only very slight additional runtime overhead. The idea was inspired by [this article](https://www.snellman.net/blog/archive/2016-12-13-ring-buffers/) and the discussion in the comments section underneath it.
+There are several implementations of the interface. More will probably added later.
+
+### Full array usage
+The implementations described in `yarb.h`and `yarb_template.` are not quite textbook-like. With most implementations, an array of N bytes is allocated, but only N-1 bytes can be used. These implementations can use the whole range of allocated space for only very slight additional runtime overhead. The idea was inspired by [this article](https://www.snellman.net/blog/archive/2016-12-13-ring-buffers/) and the discussion in the comments section underneath it.
+
+There is an implementation using dynamically allocated storage (`yarb.h`) and a version using C++ templates (`yarb_template.h`). Use the fist version if you can afford to use dynamic memory allocation (when allocating and deallocating memory repeatedly on system with small RAM - like microconroller - heap fragmentation can become a problem ) and/or need ring buffers with several different sizes.
+
+### Classic implementation
+
+To be implemented soon...

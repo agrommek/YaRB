@@ -1,11 +1,11 @@
 /**
- * @file    yarb.h
- * @brief   Header file for the YaRB ring buffer
+ * @file    yarb_template.h
+ * @brief   Header file for the YaRB ring buffer in a template version
  * @author  Andreas Grommek
  * @version 1.2.0
  * @date    2021-09-28
  * 
- * @section license_yarb_h License
+ * @section license_yarb_template_h License
  * 
  * The MIT Licence (MIT)
  * 
@@ -30,15 +30,14 @@
  * SOFTWARE.
  */
 
-#ifndef yarb_h
-#define yarb_h
+#ifndef yarb_template_h
+#define yarb_template_h
 
 #include "yarb_interface.h"
 
 /**
- * @class   YaRB
- * @brief   Ring buffer implementation using dynamic allocated array and
- *          two indices.
+ * @class   YaRB_template
+ * @brief   Ring buffer implementation using a template and two indices.
  * @details Unlike most implementations, it is possible to use the full
  *          number of elements allocated. This is made possible by calculating
  *          the indices <em> mod(2*capacity)</em>. The implementation was 
@@ -50,19 +49,23 @@
  *          This is due to the fact that the assignment operation for data
  *          type size_t is not atomic on some platforms.
  */
-class YaRB : public IYaRB {
+template <size_t CAPACITY = 64>
+class YaRB_template : public IYaRB {
     public:
+        // sanity checking
+        static_assert(CAPACITY > 0, "not allowed to instantiate template with CAPACITY=0");
+        
         // constructor
-        YaRB(size_t capacity=64);
+        YaRB_template(void);
         
         // copy constructor
-        YaRB(const YaRB &rb);
+        YaRB_template(const YaRB_template &rb);
         
         // destructor
-        ~YaRB(void);
+        virtual ~YaRB_template(void) = default;
         
         // do not allow assignments
-        YaRB& operator= (const YaRB &rb) = delete;
+        YaRB_template& operator= (const YaRB_template &rb) = delete;
 
         // put element(s) into ring buffer
         size_t put(uint8_t new_element) override;
@@ -92,15 +95,17 @@ class YaRB : public IYaRB {
         static size_t limit(void);   // return maximum possible number of elements on a given platform
 
     private:
-        const size_t  cap;     ///< store capacity of ring buffer
-        size_t  readindex;     ///< index for get()
-        size_t  writeindex;    ///< index for put()
-        uint8_t *arraypointer; ///< pointer to array which holds the elements
+        size_t  readindex;           ///< index for get()
+        size_t  writeindex;          ///< index for put()
+        uint8_t arr[CAPACITY];       ///< array which holds the elements
         
         size_t  modcap(size_t val) const;
         size_t  modcap2(size_t val) const;
 };
 
-#endif // yarb_h
+// include imlementation file here
+#include "yarb_template.hpp"
+
+#endif // end of yarb_template_h
 
 

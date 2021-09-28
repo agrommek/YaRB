@@ -1,0 +1,215 @@
+/**
+ * @file    yarb_template.hpp
+ * @brief   Implementation file for the YaRB ring buffer in a template version
+ * @author  Andreas Grommek
+ * @version 1.2.0
+ * @date    2021-09-28
+ * 
+ * @section license_yarb_cpp License
+ * 
+ * The MIT Licence (MIT)
+ * 
+ * Copyright (c) 2021 Andreas Grommek
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+ 
+#include <string.h>  // memcpy(), for copy constructor
+
+/**
+ * @brief   The constructor.
+ * @details There is no default (i.e. parameter-less) constructor for
+ *          this class.
+ * @param   capacity
+ *          The target capacity of the ring buffer. The array to hold all
+ *          elements is allocated upon construction. The size is constant
+ *          and cannot be changed afterwards.
+ */
+template <size_t CAPACITY>
+YaRB_template<CAPACITY>::YaRB_template(void) 
+    : readindex{0}, writeindex{0}, arr{0} {}
+
+/**
+ * @brief   The copy constructor.
+ * @param   rb
+ *          Reference to class instance to copy.
+ */
+template <size_t CAPACITY>
+YaRB_template<CAPACITY>::YaRB_template(const YaRB_template &rb)
+    : readindex{rb.readindex}, writeindex{rb.writeindex}, arr{0} {
+    memcpy(arr, &(rb.arr), (CAPACITY * sizeof(uint8_t)) );        
+}
+
+template <size_t CAPACITY>
+size_t YaRB_template<CAPACITY>::put(uint8_t new_element) {
+    if (this->isFull()) {
+        return 0;
+    }
+    else {
+        arr[modcap(writeindex)] = new_element;
+        writeindex = modcap2(writeindex+1);
+        return 1;
+    }
+}
+
+template <size_t CAPACITY>
+size_t YaRB_template<CAPACITY>::put(const uint8_t *new_elements, size_t nbr_elements) {
+    // check validity of input pointer (may be nullptr)
+    if (!new_elements ) {
+        return 0;
+    }
+    else {
+        // only add at most free() elements to ring buffer
+        if (nbr_elements > this->free()) {
+            nbr_elements = this->free();
+        }
+        for (size_t i=0; i<nbr_elements; i++) {
+              // re-implementation is about 3-4 times faster than calling
+              // single-element put()
+              arr[modcap(writeindex)] = *new_elements;
+              writeindex = modcap2(writeindex+1);
+              new_elements++;
+        }
+        return nbr_elements;
+    }
+}
+
+template <size_t CAPACITY>
+size_t YaRB_template<CAPACITY>::peek(uint8_t *peeked_element) const {
+    // check for emptyness and validity of output pointer (may be nullptr)
+    if (this->isEmpty() || !peeked_element) {
+        return 0;
+    }
+    else {
+        *peeked_element = arr[modcap(readindex)];
+        return 1;
+    }
+}
+
+template <size_t CAPACITY>
+size_t YaRB_template<CAPACITY>::discard(size_t nbr_elements) {
+    if (this->size() > nbr_elements) { // there will be remaining elements in buffer
+        // Due to danger of integer overflow, we cannot just do
+        // readindex = modcap2(readindex + nbr_elements):
+        // readindex + nbr_elements *might* be larger than SIZE_MAX, which
+        // would then overflow, giving wrong results after modcap2.
+        // --> Do modulus calculation "manually".
+        //
+        // The difference between current readindex is always > 0 (i.e. at least 1)
+        size_t diff_to_max = 2*CAPACITY - readindex;
+        if (diff_to_max <= nbr_elements) { // readindex+nbr_elements > 2*cap --> danger of overflow
+            readindex = nbr_elements - diff_to_max;
+        }
+        else { // adding nbr_elements to readindex stays in correct range
+            // no need for modcap2(), adding nbr_elements keeps readindex
+            // below 2*cap
+            readindex = readindex + nbr_elements;
+        }
+        // return nbr_elements, no matter if we had to wrap around or not
+        return nbr_elements;
+    }
+    else { // discard *all* elements --> flush()
+        // we can only discard at many elements as are in the buffer
+        // --> return size()
+        size_t retval = this->size();
+        this->flush();
+        return retval;
+    }
+}
+
+template <size_t CAPACITY>
+size_t YaRB_template<CAPACITY>::get(uint8_t *returned_element) {
+    // check for emptyness and validity of output pointer (may  be nullptr)
+    if (this->isEmpty() || !returned_element) {
+        return 0;
+    }
+    else {
+        *returned_element = arr[modcap(readindex)];
+        readindex = modcap2(readindex+1);
+        return 1;
+    }
+}
+
+template <size_t CAPACITY>
+size_t YaRB_template<CAPACITY>::get(uint8_t *returned_elements, size_t nbr_elements) {
+    // check nullptr
+    if (!returned_elements) {
+        return 0;
+    }
+    else {
+        // only get at most size() elements from buffer
+        if (nbr_elements > this->size()) {
+            nbr_elements = this->size();
+        }
+        for (size_t i=0; i<nbr_elements; i++) {
+            // re-implementation is about 2 times faster than calling
+            // single-element get()        
+            *returned_elements = arr[modcap(readindex)];
+            readindex = modcap2(readindex+1);
+            returned_elements++;
+        }
+        return nbr_elements;
+    }
+}
+
+template <size_t CAPACITY>
+size_t YaRB_template<CAPACITY>::size(void) const {
+    return modcap2(writeindex-readindex);
+}
+
+template <size_t CAPACITY>
+size_t YaRB_template<CAPACITY>::free(void) const {
+    return CAPACITY - this->size();
+}
+
+template <size_t CAPACITY>
+size_t YaRB_template<CAPACITY>::capacity(void) const {
+    return CAPACITY;
+}
+
+template <size_t CAPACITY>
+bool YaRB_template<CAPACITY>::isFull(void) const {
+    return this->size() == CAPACITY;
+}
+
+template <size_t CAPACITY>
+bool YaRB_template<CAPACITY>::isEmpty(void) const {
+    return readindex == writeindex;
+}
+
+template <size_t CAPACITY>
+void YaRB_template<CAPACITY>::flush(void) {
+    // fast-forward readindex to position of writeindex
+    readindex = writeindex;
+}
+
+template <size_t CAPACITY>
+size_t YaRB_template<CAPACITY>::limit(void) {
+    return SIZE_MAX / 2;
+}
+
+template <size_t CAPACITY>
+inline size_t YaRB_template<CAPACITY>::modcap(size_t val) const {
+    return (val % CAPACITY);
+}
+
+template <size_t CAPACITY>
+inline size_t YaRB_template<CAPACITY>::modcap2(size_t val) const {
+    return (val % (2 * CAPACITY));
+}
