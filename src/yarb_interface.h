@@ -201,18 +201,14 @@ class IYaRB {
         virtual size_t get(uint8_t *returned_elements, size_t nbr_elements) = 0;
         
         virtual size_t peek(uint8_t *peeked_element) const = 0;
-
         virtual size_t discard(size_t nbr_elements) = 0;
-
         virtual size_t size(void) const = 0;
         virtual size_t free(void) const = 0;
         virtual size_t capacity(void) const = 0;
-
         virtual bool   isFull(void) const = 0;
         virtual bool   isEmpty(void) const = 0;
-        
         virtual void   flush(void) = 0;
-        
+
         static  size_t limit(void);
         
         // Virtual destructor to make sure, that derived objects are
@@ -249,10 +245,11 @@ class IYaRB {
  *             elements @b no element is added at all.
  * @param      only_complete
  *             If set to true only complete writes are allowed. If there
- *             is not enough space left in the ring buffer, @b no bytes
- *             are written and 0 is returned.
+ *             is not enough space left in the ring buffer to facilitate
+ *             all elements, @b no bytes are written and 0 is returned.
  *             If set to false and there is not enough space, fill the 
  *             ring buffer and ignore the surplus bytes.
+ * @note       At not time is data within the ring buffer overwritten.
  * @return     number of elements added to ring buffer
  */
 
@@ -276,11 +273,9 @@ class IYaRB {
  * @fn         virtual bool IYaRB::get(uint8_t *returned_elements, size_t nbr_elements)
  * @brief      Get several elements from the ring buffer, thereby removing
  *             them from the buffer.
- * @details    This is an "all or nothing" operation. Either @b all 
- *             requested elements will be taken from the ring buffer and written
- *             to returned_elements (in which case the function returns 
-               @em true) or @b no elements are removed at all (i.e. the ring
- *             buffer remains unchanged) and the function returns @em false.
+ * @details    At most nbr_elements are written to buffer returned_elements.
+ *             If nbr_elements > size(), only size() elements are retrieved
+ *             from ring buffer, which is empty after the operation.
  * @param[out] returned_elements
  *             Pointer to a uint8_t. The returend elements are stored  in
  *             an array starting at the memory address this pointer points to.
@@ -288,7 +283,7 @@ class IYaRB {
  *             Number of elements to get out of the ring buffer and write
  *             to returned_elements. 
  *             If the ring buffer does not have enough elements stored,
- *             @b no elements are returned at all.
+ *             all available elements are retrieed.
  * @return     number of elements removed from ring buffer and copied to
  *             returned_elements
  */

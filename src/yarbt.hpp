@@ -49,9 +49,39 @@ YaRBt<CAPACITY>::YaRBt(void)
  *          Reference to class instance to copy.
  */
 template <size_t CAPACITY>
-YaRBt<CAPACITY>::YaRBt(const YaRBt &rb)
+YaRBt<CAPACITY>::YaRBt(const YaRBt<CAPACITY> &rb)
     : readindex{rb.readindex}, writeindex{rb.writeindex}, arr{nullptr} {
     memcpy(arr, &(rb.arr), CAPACITY+1);        
+}
+
+/**
+ * @brief   The assignment operator
+ * @param   rb
+ *          Reference to class instance to assign from
+ * @note    This works because both operands are guaranteed to be of 
+ *          same capacity when using a template.
+ */
+template <size_t CAPACITY>
+YaRBt<CAPACITY>& YaRBt<CAPACITY>::operator=(const YaRBt<CAPACITY> &rb) {
+    // protect against self-assignment
+    if (this == &rb) return *this;
+    // copy indices verbatim
+    readindex = rb.readindex;
+    writeindex = rb.writeindex;
+    // Copy content depending of relative position of indices.
+    // case 1: writeindex has not yet wrapped
+    // --> copy size() bytes of data, starting from readindex
+    if (readindex <= writeindex) { 
+        memcpy(arr+readindex, rb.arr+readindex, rb.size());
+    }
+    // case 2: writeindex has already wrapped around, readindex not yet
+    // --> copy from readindex to end of array
+    // --> copy from start of array to writeindex-1
+    else {
+        memcpy(arr+readindex, rb.arr+readindex, (CAPACITY+1)-readindex);
+        memcpy(arr, rb.arr, writeindex);
+    }
+    return *this;        
 }
 
 template <size_t CAPACITY>

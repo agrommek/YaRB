@@ -70,11 +70,12 @@ Maybe I will try to implement an interrupt-safe version later. The abstact base 
 
 There are several implementations of the interface. More will probably added later.
 
-### Full array usage
-The implementations described in `yarb.h`and `yarb_template.` are not quite textbook-like. With most implementations, an array of N bytes is allocated, but only N-1 bytes can be used. These implementations can use the whole range of allocated space for only very slight additional runtime overhead. The idea was inspired by [this article](https://www.snellman.net/blog/archive/2016-12-13-ring-buffers/) and the discussion in the comments section underneath it.
+### Classic implementation (YaRB & YaRBt)
 
-There is an implementation using dynamically allocated storage (`yarb.h`) and a version using C++ templates (`yarb_template.h`). Use the fist version if you can afford to use dynamic memory allocation (when allocating and deallocating memory repeatedly on system with small RAM - like microconroller - heap fragmentation can become a problem ) and/or need ring buffers with several different sizes.
+This is a classic implementation using two indices into an array. There is always one more byte allocated than can be effectively used. There is a "normal" version using dynamically allocated memory (`YaRB`) and a template version with statically allocated memory (`YaRBt`). Use the fist version if you can afford to use dynamic memory allocation (i.e. when not allocating and deallocating memory repeatedly on system with small RAM - like microconrollers. Heap fragmentation can become a problem there.) and/or need ring buffers with several different sizes (using templates with differnt parameters tend to bloat the executable.
 
-### Classic implementation
+### Full array usage (YaRB2 & YaRB2t(
 
-To be implemented soon...
+The implementations `YaRB2` and `YaRB2t` (normal and template version, see above) are not quite textbook-like. With most implementations (as with the "classic" version above), an array of N bytes is allocated, but only N-1 bytes can be used. These implementations can use the whole range of allocated space for only very slight additional runtime overhead. The idea was inspired by [this article](https://www.snellman.net/blog/archive/2016-12-13-ring-buffers/) and the discussion in the comments section underneath it.
+
+In the end, this implementation tends to be slower *and* takes more storage than the "classic" implementation. Not really useful for production code. But do your own benchmarks and see for yourself. However, it was a nice coding exercise. :-)

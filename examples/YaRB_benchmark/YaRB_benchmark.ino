@@ -15,13 +15,20 @@
 
 #include <yarb.h>
 
+constexpr size_t some_power_of_two = 256; // 2^8
+constexpr size_t some_non_power_of_two = 257;
+
 // Ring Buffer with capacity of some power-of-two
-const size_t some_power_of_two = 256; // 2^8
-YaRB rb_power2(some_power_of_two);
+//YaRB rb_power2(some_power_of_two);
+YaRBt<some_power_of_two> rb_power2;
+//YaRB2 rb_power2(some_power_of_two);
+//YaRB2t<some_power_of_two> rb_power2;
 
 // Ring Buffer with capacity not power-of-two
-const size_t some_non_power_of_two = 257;
-YaRB rb_generic(some_non_power_of_two);
+//YaRB rb_generic(some_non_power_of_two);
+YaRBt<some_non_power_of_two> rb_generic;
+//YaRB2 rb_generic(some_non_power_of_two);
+//YaRB2t<some_non_power_of_two> rb_generic;
 
 size_t ITER = 32;
 
@@ -51,7 +58,7 @@ void setup() {
 void loop() {
 }
 
-void benchmark_writes(YaRB &rb, size_t iterations) {
+void benchmark_writes(IYaRB &rb, size_t iterations) {
     Serial.println(F("Starting write benchmark..."));
 
     // declare source array and fill it with random data
@@ -64,7 +71,7 @@ void benchmark_writes(YaRB &rb, size_t iterations) {
     diff = 0;
     for (size_t i=0; i<iterations; i++) {
         start = micros();
-        rb.put(src_array, rb.capacity());
+        rb.put(src_array, rb.capacity(), false);
         stop = micros();
         diff += stop - start;
         rb.flush();
@@ -86,12 +93,13 @@ void benchmark_writes(YaRB &rb, size_t iterations) {
     Serial.println();       
 }
 
-void benchmark_reads(YaRB &rb, size_t iterations) {
+void benchmark_reads(IYaRB &rb, size_t iterations) {
     Serial.println(F("Starting read benchmark..."));
 
     uint8_t dst_array[rb.capacity()];
     uint32_t start, stop, diff;
     diff = 0;
+    size_t sum = 0;
 
     for (size_t i=0; i<iterations; i++) {
         // fill ring buffer with random data
@@ -102,7 +110,12 @@ void benchmark_reads(YaRB &rb, size_t iterations) {
         rb.get(dst_array, rb.capacity());
         stop = micros();
         diff += stop - start;
+
+        // do something with data in dst_array to prevent compiler optimizations
+        for (size_t i=0; i<sizeof(dst_array); i++) sum += dst_array[i];
     }
+    rb.put(sum);
+    rb.flush();
 
     Serial.print(F("Reading "));
     Serial.print(rb.capacity() * iterations, DEC);

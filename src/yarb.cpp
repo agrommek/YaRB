@@ -60,7 +60,7 @@ YaRB::YaRB(size_t capacity)
 YaRB::YaRB(const YaRB &rb)
     : cap{rb.cap}, readindex{rb.readindex}, writeindex{rb.writeindex}, arraypointer{nullptr} {
     arraypointer = new uint8_t[cap];
-    memcpy(arraypointer, &(rb.arraypointer), (cap * sizeof(uint8_t)) );        
+    memcpy(arraypointer, &(rb.arraypointer), cap);        
 }
 
 /**
@@ -80,7 +80,7 @@ size_t YaRB::put(uint8_t new_element) {
         return 1;
     }
 }
-
+        
 size_t YaRB::put(const uint8_t *new_elements, size_t nbr_elements, bool only_complete) {
     // check validity of input pointer (may be nullptr)
     if (!new_elements ) {
@@ -181,7 +181,7 @@ size_t YaRB::size(void) const {
 }
 
 size_t YaRB::free(void) const {
-    return this->capacity() - this->size(); //optimize me!!
+    return this->capacity() - this->size();
 }
 
 size_t YaRB::capacity(void) const {

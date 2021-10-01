@@ -17,11 +17,15 @@ const size_t RB_CAPACITY = 20;
 
 // Select here if you want to use the version with dynamically allocated memory or the templated version.
 
-YaRB ringbuf(RB_CAPACITY);     // dynamically allocated storage
+/* "classic" ring buffer */
+//YaRB ringbuf(RB_CAPACITY);     // dynamically allocated storage
+YaRBt<RB_CAPACITY> ringbuf;    // statically allocated storage, template version
+
+/* alternamtive implementation */
 //YaRB2 ringbuf(RB_CAPACITY);    // dynamically allocated storage, classic implementation
 //YaRB2t<RB_CAPACITY> ringbuf;   // statically allocated storage, template version
 
-// Note: If you want to use the default size of 64, use something like this:
+// Note: If you want to use the default, use something like this:
 //    YaRB2t<> ringbuf     <-- for C++11 (Arduino & Co)
 //    YaRB2t   ringbuf     <-- for C++14 and newer
 
@@ -33,7 +37,7 @@ void setup() {
 
     Serial.begin(115200);
     while (!Serial); // wait for serial connections
-
+    
     Serial.println(F("\n\n === Starting YaRB demo === \n\n\n"));
     
     // Show the theoretical maximum ring buffer size for this platform
@@ -109,7 +113,7 @@ void setup() {
     
     Serial.println(F("Add some elements to ringbuf in one go:"));
     // Note: a[] decays to a pointer here
-    retval = ringbuf.put(a, nbr);
+    retval = ringbuf.put(a, nbr, true);
     if (retval) Serial.println(F("adding to ring buffer was successful"));
     else         Serial.println(F("Could not add elements to ring buffer."));
     Serial.println(F("Status of ring buffer after adding some content from a[]:"));
@@ -117,7 +121,7 @@ void setup() {
 
     Serial.println(F("Add some more elements to ringbuf in one go:"));
     // Note: Start somewhere in the middle of the buffer, use "address-of" operator on array element
-    retval = ringbuf.put(&a[nbr], nbr);
+    retval = ringbuf.put(&a[nbr], nbr, true);
     if (retval) Serial.println(F("adding to ring buffer was successful"));
     else         Serial.println(F("Could not add elements to ring buffer."));
     Serial.println(F("Status of ring buffer after adding some content from a[]:"));
@@ -125,7 +129,7 @@ void setup() {
 
     Serial.println(F("Add some more elements to ringbuf in one go:"));
     // Note: Start somewhere in the middle of the buffer, using yet another notation (pointer arithmetic)
-    retval = ringbuf.put(a+nbr, 2*nbr); // not enough room in ring buffer for another 2*nbr elements! returns false
+    retval = ringbuf.put(a+nbr, 2*nbr, true); // not enough room in ring buffer for another 2*nbr elements! returns false
     if (retval) Serial.println(F("adding to ring buffer was successful"));
     else         Serial.println(F("Could not add elements to ring buffer."));
     Serial.println(F("Status of ring buffer after adding some content from a[] with return value of 'false' (--> unchanged!):"));

@@ -1,8 +1,8 @@
 /**
- * @file    yarb_template.hpp
+ * @file    yarb2t.hpp
  * @brief   Implementation file for the YaRB ring buffer in a template version
  * @author  Andreas Grommek
- * @version 1.2.0
+ * @version 1.3.0
  * @date    2021-09-28
  * 
  * @section license_yarb_cpp License
@@ -34,8 +34,8 @@
 
 /**
  * @brief   The constructor.
- * @details There is no default (i.e. parameter-less) constructor for
- *          this class.
+ * @details There is only a parameterless constructor. Size is given as
+ *          template parameter.
  * @param   capacity
  *          The target capacity of the ring buffer. The array to hold all
  *          elements is allocated upon construction. The size is constant
@@ -51,7 +51,7 @@ YaRB2t<CAPACITY>::YaRB2t(void)
  *          Reference to class instance to copy.
  */
 template <size_t CAPACITY>
-YaRB2t<CAPACITY>::YaRB2t(const YaRB2t &rb)
+YaRB2t<CAPACITY>::YaRB2t(const YaRB2t<CAPACITY> &rb)
     : readindex{rb.readindex}, writeindex{rb.writeindex}, arr{0} {
     memcpy(arr, &(rb.arr), (CAPACITY * sizeof(uint8_t)) );        
 }
