@@ -36,10 +36,6 @@
  * @brief   The constructor.
  * @details There is only a parameterless constructor. Size is given as
  *          template parameter.
- * @param   capacity
- *          The target capacity of the ring buffer. The array to hold all
- *          elements is allocated upon construction. The size is constant
- *          and cannot be changed afterwards.
  */
 template <size_t CAPACITY>
 YaRB2t<CAPACITY>::YaRB2t(void) 

@@ -229,7 +229,7 @@ class IYaRB {
 
 // put() multiple
 /**
- * @fn         virtual bool IYaRB::put(const uint8_t *new_elements, size_t nbr_elements)
+ * @fn         virtual bool IYaRB::put(const uint8_t *new_elements, size_t nbr_elements, bool only_complete)
  * @brief      Add several new elements to ring buffer.
  * @details    This functions adds several elements to the ring buffer in
  *             an "all or nothing" manner. If the ring buffer is big enough
