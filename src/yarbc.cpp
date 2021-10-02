@@ -235,7 +235,7 @@ size_t YaRBc::limit(void) {
 }
 
 /**
- * @brief      Get the count of delimiter bytes withing ring buffer.
+ * @brief      Get the count of delimiter bytes within ring buffer.
  * @return     Number of delimiter bytes currently stored in ring buffer.
  */
 size_t YaRBc::count(void) const {

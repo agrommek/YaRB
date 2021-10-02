@@ -37,7 +37,7 @@
  * @details This is the default constructor with one optional argument,
  *          the delimiting byte. 
  *          Capacity is not given as a parameter to the constructor, but
- *          as atemplate parameter
+ *          as a template parameter
  */
 template <size_t CAPACITY>
 YaRBct<CAPACITY>::YaRBct(uint8_t delimiter) 
@@ -204,7 +204,7 @@ size_t YaRBct<CAPACITY>::limit(void) {
 }
 
 /**
- * @brief      Get the count of delimiter bytes withing ring buffer.
+ * @brief      Get the count of delimiter bytes within ring buffer.
  * @return     Number of delimiter bytes currently stored in ring buffer.
  */
 template <size_t CAPACITY>
