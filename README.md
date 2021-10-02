@@ -70,12 +70,34 @@ Maybe I will try to implement an interrupt-safe version later. The abstact base 
 
 There are several implementations of the interface. More will probably added later.
 
+### "Regular" vs. "templated" implementations
+
+Most implementations exist in a "regular" and in a "templated" version.
+
+In the "regular" version, the maximum capacity of the ring buffer is given as parameter to the constructor and the memory is dynamically allocated. In the "templated" version, the constructor does not take the capacity as an a parameter. The capacity is given as a non-type template parameter. Memory is statically allocated with templated versions.
+
+Templated versions have advantages over regular version: They are typically a little bit faster and result in slightly smaller code for a given capacity. Memory is allocated on the stack, not on the heap. However, the compiler will have to generate separate code for every capacity in use. This may result in code bloat when many buffers with differing capacities are needed. Also, all capacities must be known at compile time.
+
+Use templated versions if:
+
+ - There are only ring buffers in your program with few differing capacities, ideally only one capacity for all ring buffers in use. Using multiple templated ring buffers with different capacities may lead to code bloat.
+ - All needed capacities are known at compile time. Non-type template parameters must be constexpr.
+ - You worry about heap fragmentation and/or dynamic memory is too limited.
+ - You want the very fastest performance and do not care about code bloat.
+
+Use a regular version if:
+
+ - You do not know the needed capacity of your ring buffer(s) at compile time.
+ - You need many ring buffers with different capacities.
+ - You do not worry about heap fragmentation.
+ - Performance is not so critical.
+
 ### Classic implementation (YaRB & YaRBt)
 
-This is a classic implementation using two indices into an array. There is always one more byte allocated than can be effectively used. There is a "normal" version using dynamically allocated memory (`YaRB`) and a template version with statically allocated memory (`YaRBt`). Use the fist version if you can afford to use dynamic memory allocation (i.e. when not allocating and deallocating memory repeatedly on system with small RAM - like microconrollers. Heap fragmentation can become a problem there.) and/or need ring buffers with several different sizes (using templates with differnt parameters tend to bloat the executable.
+This is a classic implementation using two indices into an array. There is always one more byte allocated than can be effectively used. `YaRB` is the regular implementation, `YaRBt`the templated version.
 
-### Full array usage (YaRB2 & YaRB2t(
+### Full array usage (YaRB2 & YaRB2t)
 
 The implementations `YaRB2` and `YaRB2t` (normal and template version, see above) are not quite textbook-like. With most implementations (as with the "classic" version above), an array of N bytes is allocated, but only N-1 bytes can be used. These implementations can use the whole range of allocated space for only very slight additional runtime overhead. The idea was inspired by [this article](https://www.snellman.net/blog/archive/2016-12-13-ring-buffers/) and the discussion in the comments section underneath it.
 
-In the end, this implementation tends to be slower *and* takes more storage than the "classic" implementation. Not really useful for production code. But do your own benchmarks and see for yourself. However, it was a nice coding exercise. :-)
+In the end, this implementation tends to be slower *and* takes more storage than the "classic" implementation. It turned out not to be worth the effort as this implementation is not better than the classic implementation and not really useful for production code. But do your own benchmarks and see for yourself. However, it was a nice coding exercise. :-)
