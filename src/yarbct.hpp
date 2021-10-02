@@ -1,11 +1,11 @@
 /**
- * @file    yarbt.hpp
- * @brief   Implementation file for the classic ring buffers in a template version
+ * @file    yarbct.hpp
+ * @brief   Implementation file for a ring buffer template implementation with counter.
  * @author  Andreas Grommek
  * @version 1.5.0
  * @date    2021-10-02
  * 
- * @section license_yart_hpp License
+ * @section license_yarbct_hpp License
  * 
  * The MIT Licence (MIT)
  * 
@@ -34,13 +34,14 @@
 
 /**
  * @brief   The constructor.
- * @details This is the default constructor with no arguments. Capacity 
- *          is not given as a parameter to the constructor, but as a
- *          template parameter
+ * @details This is the default constructor with one optional argument,
+ *          the delimiting byte. 
+ *          Capacity is not given as a parameter to the constructor, but
+ *          as atemplate parameter
  */
 template <size_t CAPACITY>
-YaRBt<CAPACITY>::YaRBt(void) 
-    : readindex{0}, writeindex{0}, arr{0} {
+YaRBct<CAPACITY>::YaRBct(uint8_t delimiter) 
+    : delim{delimiter}, readindex{0}, writeindex{0}, arr{0}, ct{0} {
 }
 
 /**
@@ -49,55 +50,28 @@ YaRBt<CAPACITY>::YaRBt(void)
  *          Reference to class instance to copy.
  */
 template <size_t CAPACITY>
-YaRBt<CAPACITY>::YaRBt(const YaRBt<CAPACITY> &rb)
-    : readindex{rb.readindex}, writeindex{rb.writeindex}, arr{nullptr} {
+YaRBct<CAPACITY>::YaRBct(const YaRBct<CAPACITY> &rb)
+    : delim{rb.delim}, readindex{rb.readindex}, writeindex{rb.writeindex}, arr{0}, ct{rb.ct} {
     memcpy(arr, &(rb.arr), CAPACITY+1);        
 }
 
-/**
- * @brief   The assignment operator
- * @param   rb
- *          Reference to class instance to assign from
- * @note    This works because both operands are guaranteed to be of 
- *          same capacity when using a template.
- */
+// modified
 template <size_t CAPACITY>
-YaRBt<CAPACITY>& YaRBt<CAPACITY>::operator=(const YaRBt<CAPACITY> &rb) {
-    // protect against self-assignment
-    if (this == &rb) return *this;
-    // copy indices verbatim
-    readindex = rb.readindex;
-    writeindex = rb.writeindex;
-    // Copy content depending of relative position of indices.
-    // case 1: writeindex has not yet wrapped
-    // --> copy size() bytes of data, starting from readindex
-    if (readindex <= writeindex) { 
-        memcpy(arr+readindex, rb.arr+readindex, rb.size());
-    }
-    // case 2: writeindex has already wrapped around, readindex not yet
-    // --> copy from readindex to end of array
-    // --> copy from start of array to writeindex-1
-    else {
-        memcpy(arr+readindex, rb.arr+readindex, (CAPACITY+1)-readindex);
-        memcpy(arr, rb.arr, writeindex);
-    }
-    return *this;        
-}
-
-template <size_t CAPACITY>
-size_t YaRBt<CAPACITY>::put(uint8_t new_element) {
+size_t YaRBct<CAPACITY>::put(uint8_t new_element) {
     if (this->isFull()) {
         return 0;
     }
     else {
+        if (new_element == delim) ct++;
         arr[writeindex] = new_element;
         writeindex = (writeindex + 1) % (CAPACITY+1);
         return 1;
     }
 }
 
+// modified
 template <size_t CAPACITY>
-size_t YaRBt<CAPACITY>::put(const uint8_t *new_elements, size_t nbr_elements, bool only_complete) {
+size_t YaRBct<CAPACITY>::put(const uint8_t *new_elements, size_t nbr_elements, bool only_complete) {
     // check validity of input pointer (may be nullptr)
     if (!new_elements ) {
         return 0;
@@ -110,6 +84,7 @@ size_t YaRBt<CAPACITY>::put(const uint8_t *new_elements, size_t nbr_elements, bo
     for (size_t i=0; i<nbr_elements; i++) {
           // re-implementation is about 3-4 times faster than calling
           // single-element put()
+          if (*new_elements == delim) ct++;
           arr[writeindex] = *new_elements;
           writeindex = (writeindex + 1) % (CAPACITY+1);
           new_elements++;
@@ -118,7 +93,7 @@ size_t YaRBt<CAPACITY>::put(const uint8_t *new_elements, size_t nbr_elements, bo
 }
 
 template <size_t CAPACITY>
-size_t YaRBt<CAPACITY>::peek(uint8_t *peeked_element) const {
+size_t YaRBct<CAPACITY>::peek(uint8_t *peeked_element) const {
     // check for emptyness and validity of output pointer (may be nullptr)
     if (this->isEmpty() || !peeked_element) {
         return 0;
@@ -129,24 +104,15 @@ size_t YaRBt<CAPACITY>::peek(uint8_t *peeked_element) const {
     }
 }
 
+// modified
 template <size_t CAPACITY>
-size_t YaRBt<CAPACITY>::discard(size_t nbr_elements) {
+size_t YaRBct<CAPACITY>::discard(size_t nbr_elements) {
     if (this->size() > nbr_elements) { // there will be remaining elements in buffer
-        // Due to danger of integer overflow, we cannot just do
-        // readindex = (readindex + nbr_elements) % (CAPACITY+1):
-        // readindex + nbr_elements *might* be larger than SIZE_MAX, which
-        // would then overflow, giving wrong results after modulus.
-        // --> Do modulus calculation "manually".
-        //
-        // The difference between current readindex and (CAPACITY+1) is always >= 0 (i.e. at least 1)
-        size_t diff_to_max = (CAPACITY+1) - readindex;
-        if (nbr_elements > diff_to_max) {
-            readindex = nbr_elements - diff_to_max;
+        // use loop instead just index shifting
+        for (size_t i=0; i<nbr_elements; i++) {    
+            if (arr[readindex] == delim) ct--;
+            readindex = (readindex + 1 ) % (CAPACITY+1);
         }
-        else { // adding nbr_elements to readindex does not wrap
-            readindex += nbr_elements;
-        }
-        // return nbr_elements, no matter if we had to wrap around or not
         return nbr_elements;
     }
     else { // discard *all* elements --> flush()
@@ -158,21 +124,24 @@ size_t YaRBt<CAPACITY>::discard(size_t nbr_elements) {
     }
 }
 
+
 template <size_t CAPACITY>
-size_t YaRBt<CAPACITY>::get(uint8_t *returned_element) {
+size_t YaRBct<CAPACITY>::get(uint8_t *returned_element) {
     // check for emptyness and validity of output pointer (may  be nullptr)
     if (this->isEmpty() || !returned_element) {
         return 0;
     }
     else {
+        if (arr[readindex] == delim) ct--;
         *returned_element = arr[readindex];
         readindex = (readindex + 1) % (CAPACITY+1);
         return 1;
     }
 }
 
+// modified
 template <size_t CAPACITY>
-size_t YaRBt<CAPACITY>::get(uint8_t *returned_elements, size_t nbr_elements) {
+size_t YaRBct<CAPACITY>::get(uint8_t *returned_elements, size_t nbr_elements) {
     // check for nullptr
     if (!returned_elements) {
         return 0;
@@ -182,7 +151,8 @@ size_t YaRBt<CAPACITY>::get(uint8_t *returned_elements, size_t nbr_elements) {
         if (nbr_elements > this->size()) {
             nbr_elements = this->size();
         }
-        for (size_t i=0; i<nbr_elements; i++) {    
+        for (size_t i=0; i<nbr_elements; i++) {
+            if (arr[readindex] == delim) ct--;
             *returned_elements = arr[readindex];
             readindex = (readindex+1) % (CAPACITY+1);
             returned_elements++;
@@ -192,7 +162,7 @@ size_t YaRBt<CAPACITY>::get(uint8_t *returned_elements, size_t nbr_elements) {
 }
         
 template <size_t CAPACITY>
-size_t YaRBt<CAPACITY>::size(void) const {
+size_t YaRBct<CAPACITY>::size(void) const {
     if (writeindex >= readindex) {
         return writeindex - readindex;
     }
@@ -202,32 +172,42 @@ size_t YaRBt<CAPACITY>::size(void) const {
 }
 
 template <size_t CAPACITY>
-size_t YaRBt<CAPACITY>::free(void) const {
+size_t YaRBct<CAPACITY>::free(void) const {
     return this->capacity() - this->size();
 }
 
 template <size_t CAPACITY>
-size_t YaRBt<CAPACITY>::capacity(void) const {
+size_t YaRBct<CAPACITY>::capacity(void) const {
     return CAPACITY;
 }
 
 template <size_t CAPACITY>
-bool YaRBt<CAPACITY>::isFull(void) const {
+bool YaRBct<CAPACITY>::isFull(void) const {
     return readindex == (writeindex + 1) % (CAPACITY+1);
 }
 
 template <size_t CAPACITY>
-bool YaRBt<CAPACITY>::isEmpty(void) const {
+bool YaRBct<CAPACITY>::isEmpty(void) const {
     return readindex == writeindex;
 }
 
 template <size_t CAPACITY>
-void YaRBt<CAPACITY>::flush(void) {
+void YaRBct<CAPACITY>::flush(void) {
     // fast-forward readindex to position of writeindex
     readindex = writeindex;
+    ct = 0;
 }
 
 template <size_t CAPACITY>
-size_t YaRBt<CAPACITY>::limit(void) {
+size_t YaRBct<CAPACITY>::limit(void) {
     return SIZE_MAX - 1;
+}
+
+/**
+ * @brief      Get the count of delimiter bytes withing ring buffer.
+ * @return     Number of delimiter bytes currently stored in ring buffer.
+ */
+template <size_t CAPACITY>
+size_t YaRBct<CAPACITY>::count(void) const {
+    return ct;
 }

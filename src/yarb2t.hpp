@@ -2,10 +2,10 @@
  * @file    yarb2t.hpp
  * @brief   Implementation file for the YaRB ring buffer in a template version
  * @author  Andreas Grommek
- * @version 1.4.0
+ * @version 1.5.0
  * @date    2021-10-02
  * 
- * @section license_yarb_cpp License
+ * @section license_yarb2t_hpp License
  * 
  * The MIT Licence (MIT)
  * 

@@ -2,7 +2,7 @@
  * @file    yarb.cpp
  * @brief   Implementation file for the YaRB ring buffers
  * @author  Andreas Grommek
- * @version 1.4.0
+ * @version 1.5.0
  * @date    2021-10-02
  * 
  * @section license_yarb_cpp License

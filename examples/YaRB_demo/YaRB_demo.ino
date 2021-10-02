@@ -19,7 +19,11 @@ const size_t RB_CAPACITY = 20;
 
 /* "classic" ring buffer */
 //YaRB ringbuf(RB_CAPACITY);     // dynamically allocated storage
-YaRBt<RB_CAPACITY> ringbuf;    // statically allocated storage, template version
+//YaRBt<RB_CAPACITY> ringbuf;    // statically allocated storage, template version
+
+#include <yarbc.h>
+YaRBct<RB_CAPACITY> ringbuf(0);
+
 
 /* alternamtive implementation */
 //YaRB2 ringbuf(RB_CAPACITY);    // dynamically allocated storage, classic implementation

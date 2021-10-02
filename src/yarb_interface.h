@@ -2,7 +2,7 @@
  * @file    yarb_interface.h
  * @brief   Header file for the YaRB interface
  * @author  Andreas Grommek
- * @version 1.4.0
+ * @version 1.5.0
  * @date    2021-10-02
  * 
  * @section license_yarb_interface_h License
@@ -175,7 +175,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  *
- * @version  1.4.0
+ * @version  1.5.0
  * @date     2021-10-02
  */
  

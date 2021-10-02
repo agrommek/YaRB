@@ -102,3 +102,17 @@ This is a classic implementation using two indices into an array. There is alway
 The implementations `YaRB2` and `YaRB2t` (normal and template version, see above) are not quite textbook-like. With most implementations (as with the "classic" version above), an array of N bytes is allocated, but only N-1 bytes can be used. These implementations can use the whole range of allocated space for only very slight additional runtime overhead. The idea was inspired by [this article](https://www.snellman.net/blog/archive/2016-12-13-ring-buffers/) and the discussion in the comments section underneath it.
 
 In the end, this implementation tends to be slower *and* takes more storage than the "classic" implementation. It turned out not to be worth the effort as this implementation is not better than the classic implementation and not really useful for production code. But do your own benchmarks and see for yourself. However, it was a nice coding exercise. :-)
+
+### Implementation with additional counter (YaRBc & YaRBct)
+
+There is yet another implementation in `yarbc.h`("c" for "counter"). This version extends the `IYaRB` interface and adds a funcion `count()`, which returns the number of bytes with a predefined value. The reasoning behind this is as follows: I use this ring buffer to temporarily store data which comes in through a serial connection. The messages are zero-delimited (encoded by the COBS algorithm, see [this repository](https://github.com/agrommek/cobs/)). For further processing we have to be able figure out if a messages was already received completely or not. If `count()` returns at least one, we know we can pull out at least one complete message from the ring buffer.
+
+There were several implementation options:
+
+ - Extend the `YaRB` and/or `YaRBt` classes.
+ - Implement the `IYaRB` interface and simply add another function.
+ - Create an "extended Interface" (i.e. `IYaRB` plus `count()` and implement *that* interface.
+
+I used the second option, although this resulted in a lot of code duplication (the *const* methods are all identical to `YaRB`, the other ones only differ in a few lines of code each). With the first option it would have been possible to implement the additional functionality in termin of publicly accessible methods, but this would have been clunky and not very performant. The third option felt like overkill.
+
+Note that by declaring `count()` in the derived class and not in the `IYaRB` interface we cannot access this functionality through a base class pointer.
