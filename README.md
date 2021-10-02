@@ -32,8 +32,8 @@ The following table summarized the usage of the YaRB interface:
 |Method | Short description |
 | :---- | :---------------- |
 | `size_t put(uint8_t new_element)` | Add a single byte to the Ring Buffer. |
-| `size_t put(uint8_t * new_elements, size_t nbr_elements)` | All several bytes from an array to the Ring Buffer |
-| `size_t get(uint_8 * returned_element)` | Get a single byte back out from the Ring Buffer |
+| `size_t put(uint8_t * new_elements, size_t nbr_elements, bool only_complete)` | Add several bytes from an array to the Ring Buffer. |
+| `size_t get(uint_8 * returned_element)` | Get a single byte back out from the Ring Buffer. |
 | `size_t get(uint_8 * returned_elements, size_t nbr_elements)` | Get several bytes back out from the Ring Buffer and write them to an array. |
 | `size_t peek(uint_8 * returned_element)` | Get next element from the ring buffer while *not* removing it from the buffer. |
 | `size_t discard(size_t nbr_elements)`| Discard one or more bytes from the Ring Buffer. |
@@ -80,6 +80,7 @@ Templated versions have advantages over regular version: They are typically a li
 
 Use templated versions if:
 
+ - You need the assignment operator (`operator=`) to work. Assignment is only implemented for templated versions, because only there we can guarantee that capacities match.
  - There are only ring buffers in your program with few differing capacities, ideally only one capacity for all ring buffers in use. Using multiple templated ring buffers with different capacities may lead to code bloat.
  - All needed capacities are known at compile time. Non-type template parameters must be constexpr.
  - You worry about heap fragmentation and/or dynamic memory is too limited.

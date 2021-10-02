@@ -2,8 +2,8 @@
  * @file    yarb_interface.h
  * @brief   Header file for the YaRB interface
  * @author  Andreas Grommek
- * @version 1.3.0
- * @date    2021-09-29
+ * @version 1.4.0
+ * @date    2021-10-02
  * 
  * @section license_yarb_interface_h License
  * 
@@ -81,12 +81,12 @@
  * Add the line `#include <yarb.h>` somwhere at the top of your Arduino sketch (or your .cpp file on other platforms).
  * 
  * The followng table summarized the usage of the YaRB class:
- * 
+ *
  * |Method | Short description |
  * | :---- | :---------------- |
  * | `size_t put(uint8_t new_element)` | Add a single byte to the Ring Buffer. |
- * | `size_t put(uint8_t * new_elements, size_t nbr_elements)` | All several bytes from an array to the Ring Buffer |
- * | `size_t get(uint_8 * returned_element)` | Get a single byte back out from the Ring Buffer |
+ * | `size_t put(uint8_t * new_elements, size_t nbr_elements, bool only_complete)` | Add several bytes from an array to the Ring Buffer. |
+ * | `size_t get(uint_8 * returned_element)` | Get a single byte back out from the Ring Buffer. |
  * | `size_t get(uint_8 * returned_elements, size_t nbr_elements)` | Get several bytes back out from the Ring Buffer and write them to an array. |
  * | `size_t peek(uint_8 * returned_element)` | Get next element from the ring buffer while *not* removing it from the buffer. |
  * | `size_t discard(size_t nbr_elements)`| Discard one or more bytes from the Ring Buffer. |
@@ -175,8 +175,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  *
- * @version  1.3.0
- * @date     2021-09-29
+ * @version  1.4.0
+ * @date     2021-10-02
  */
  
 #ifndef yarb_interface_h

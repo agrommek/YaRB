@@ -2,8 +2,8 @@
  * @file    yarb.h
  * @brief   Header file for a ring buffer implementations
  * @author  Andreas Grommek
- * @version 1.3.0
- * @date    2021-09-29
+ * @version 1.4.0
+ * @date    2021-10-02
  * 
  * @section license_yarb_h License
  * 
@@ -259,8 +259,8 @@ class YaRB2t : public IYaRB {
         // destructor
         virtual ~YaRB2t(void) = default;
         
-        // do not allow assignments
-        YaRB2t& operator= (const YaRB2t<CAPACITY> &rb) = delete;
+        // allow assignments for templated version, as CAPACITY is constant
+        YaRB2t& operator= (const YaRB2t<CAPACITY> &rb);
 
         // put element(s) into ring buffer
         size_t put(uint8_t new_element) override;

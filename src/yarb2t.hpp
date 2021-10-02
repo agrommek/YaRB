@@ -2,8 +2,8 @@
  * @file    yarb2t.hpp
  * @brief   Implementation file for the YaRB ring buffer in a template version
  * @author  Andreas Grommek
- * @version 1.3.0
- * @date    2021-09-28
+ * @version 1.4.0
+ * @date    2021-10-02
  * 
  * @section license_yarb_cpp License
  * 
@@ -50,6 +50,38 @@ template <size_t CAPACITY>
 YaRB2t<CAPACITY>::YaRB2t(const YaRB2t<CAPACITY> &rb)
     : readindex{rb.readindex}, writeindex{rb.writeindex}, arr{0} {
     memcpy(arr, &(rb.arr), (CAPACITY * sizeof(uint8_t)) );        
+}
+
+/**
+ * @brief   The assignment operator
+ * @param   rb
+ *          Reference to class instance to assign from
+ * @note    This works because both operands are guaranteed to be of 
+ *          same capacity when using a template.
+ */
+template <size_t CAPACITY>
+YaRB2t<CAPACITY>& YaRB2t<CAPACITY>::operator=(const YaRB2t<CAPACITY> &rb) {
+    // protect against self-assignment
+    if (this == &rb) return *this;
+    // copy indices verbatim
+    readindex = rb.readindex;
+    writeindex = rb.writeindex;
+    const size_t r = modcap(readindex);
+    const size_t w = modcap(writeindex);
+    // Copy content depending of relative position of indices.
+    // case 1: writeindex has not yet wrapped
+    // --> copy size() bytes of data, starting from readindex
+    if (r <= w) { 
+        memcpy(arr+r, rb.arr+r, rb.size());
+    }
+    // case 2: writeindex has already wrapped around, readindex not yet
+    // --> copy from readindex to end of array
+    // --> copy from start of array to writeindex-1
+    else {
+        memcpy(arr+r, rb.arr+r, CAPACITY-r);
+        memcpy(arr, rb.arr, w);
+    }
+    return *this;        
 }
 
 template <size_t CAPACITY>

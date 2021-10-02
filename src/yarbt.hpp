@@ -2,8 +2,8 @@
  * @file    yarbt.hpp
  * @brief   Implementation file for the classic ring buffers in a template version
  * @author  Andreas Grommek
- * @version 1.3.0
- * @date    2021-09-29
+ * @version 1.4.0
+ * @date    2021-10-02
  * 
  * @section license_yarb_cpp License
  * 

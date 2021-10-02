@@ -25,7 +25,7 @@ YaRBt<RB_CAPACITY> ringbuf;    // statically allocated storage, template version
 //YaRB2 ringbuf(RB_CAPACITY);    // dynamically allocated storage, classic implementation
 //YaRB2t<RB_CAPACITY> ringbuf;   // statically allocated storage, template version
 
-// Note: If you want to use the default, use something like this:
+// Note: If you want to use the default capacity, use something like this:
 //    YaRB2t<> ringbuf     <-- for C++11 (Arduino & Co)
 //    YaRB2t   ringbuf     <-- for C++14 and newer
 
@@ -38,7 +38,7 @@ void setup() {
     Serial.begin(115200);
     while (!Serial); // wait for serial connections
     
-    Serial.println(F("\n\n === Starting YaRB demo === \n\n\n"));
+    Serial.println(F("\n\n === Starting YaRB demo === \n\n"));
     
     // Show the theoretical maximum ring buffer size for this platform
     // The practical limit is much smaller.
